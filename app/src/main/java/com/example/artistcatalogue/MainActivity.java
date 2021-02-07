@@ -11,6 +11,8 @@ import android.util.Log;
 
 import com.example.artistcatalogue.adapter.ArtistAdapter;
 import com.example.artistcatalogue.model.ArtistModel;
+import com.example.artistcatalogue.mvp.ArtistListPresenter;
+import com.example.artistcatalogue.mvp.ViewPresenterContract;
 import com.example.artistcatalogue.rest.ApiClient;
 import com.example.artistcatalogue.rest.ApiInterface;
 import com.example.artistcatalogue.utilities.RxUtils;
@@ -24,22 +26,25 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ViewPresenterContract.IView {
 
+    private ArtistListPresenter artistListPresenter;
     private RecyclerView mRecyclerView;
-    private ArtistAdapter mAdapter;
-    private ProgressDialog mDialog;
 
-    private CompositeSubscription _subscriptions = new CompositeSubscription();
+
+   // private CompositeSubscription _subscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.recycler_main);
 
+        artistListPresenter = new ArtistListPresenter(this);
         startRecycler();
-        startProgress();
-        showArtistList();
+        artistListPresenter.showArtistList();
+        artistListPresenter.otherLogic();
+
+
 
     }
 
@@ -49,57 +54,21 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
-    public void startProgress() {
-        mDialog = new ProgressDialog(this);
-        mDialog.setMessage("Loading...");
-        mDialog.show();
-    }
-
-    private void hideMDialog() {
-        if(mDialog != null) {
-            mDialog.dismiss();
-            mDialog = null;
-        }
-    }
-
-    public void showArtistList() {
-        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-        apiService.getArtistList()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ArtistModel>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull ArtistModel artistModel) {
-                        if(mRecyclerView != null) {
-                            List<ArtistModel> artistModels = artistModel.getResults();
-                            mAdapter = new ArtistAdapter(artistModels, R.layout.artist_row, getApplicationContext());
-                            mRecyclerView.setAdapter(mAdapter);
-                            hideMDialog();
-                        }
-                    }
-
-
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        hideMDialog();
-                        Log.d("DEBUG_TEST", e.getMessage());
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
+    @Override
+    public void passDataAdapter(List<ArtistModel> artists) {
+        ArtistAdapter adapter = new ArtistAdapter(artists, R.layout.artist_row, getApplicationContext());
+        mRecyclerView.setAdapter(adapter);
     }
 
     @Override
+    public void setPresenter(ViewPresenterContract.IPresenter Presenter) {
+
+    }
+
+
+
+
+   /* @Override
     public void onResume() {
         super.onResume();
         _subscriptions = RxUtils.getNewCompositeSubIfUnsubscribed(_subscriptions);
@@ -114,6 +83,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        hideMDialog();
-    }
+
+    } */
 }

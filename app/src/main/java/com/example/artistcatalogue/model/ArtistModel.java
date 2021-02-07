@@ -8,8 +8,6 @@ import java.util.List;
 public class ArtistModel {
 
 
-    List<ArtistModel> results;
-
     @SerializedName("artistName")
     private String artist;
 
@@ -22,6 +20,9 @@ public class ArtistModel {
     @SerializedName("artworkUrl30")
     private String image;
 
+    public ArtistModel() {
+
+    }
 
     public String getArtist() {
         return artist; }
@@ -35,10 +36,6 @@ public class ArtistModel {
     public String getPrice() {return price;}
 
     public void setPrice(String price) {this.price = price; }
-
-    public List<ArtistModel> getResults() {
-        return results;
-    }
 
     public String getImage() { return image;}
 }
